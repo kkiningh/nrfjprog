@@ -126,7 +126,7 @@ ctrl_c () {
 #### MAIN
 
 if [ $# -eq 0 ]; then
-    echo $USAGE
+    echo "$USAGE" >&2
     exit 1
 else
     while [ "$1" ]; do
@@ -145,7 +145,7 @@ else
                           ;;
             --rtt)        rtt
                           ;;
-            *)            echo "unexpected option '$1'"
+            *)            echo "unexpected option '$1'" >&2
                           exit 1
         esac
         shift
