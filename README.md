@@ -19,5 +19,5 @@ where action is one of:
  * `--reset`
  * `--pin-reset`
  * `--erase-all`
- * `--flash`
- * `--flash-softdevice`
+ * `--program`
+ * `--programs`
