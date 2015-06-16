@@ -1,4 +1,4 @@
-nrfprog.sh
+nrfprog
 ==========
 
 This is a loose shell port of the nrfjprog.exe program distributed by Nordic.
@@ -12,7 +12,7 @@ project.
 usage:
 
 ```
-nrfjprog.sh <action> [hexfile]
+nrfjprog <action> [hexfile]
 ```
 
 where action is one of:

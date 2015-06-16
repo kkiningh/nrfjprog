@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# nrfprog.sh - a loose shell port of nrfjprog.exe for bash
+# nrfprog - a loose shell port of nrfjprog.exe for bash
 
 #### CONSTANTS
 
@@ -14,7 +14,7 @@ which relies on JLinkExe to interface with the JLink hardware.
 
 usage:
 
-nrfjprog.sh <action> [hexfile]
+nrfjprog <action> [hexfile]
 
 where action is one of
   --reset
@@ -36,11 +36,11 @@ reset ()
     echo ""
     echo -e "${GREEN}resetting...${RESET}"
     echo ""
-    echo "r"     > $SCRIPT
-    echo "g"    >> $SCRIPT
-    echo "exit" >> $SCRIPT
-    $JLINK $SCRIPT
-    rm $SCRIPT
+    echo "r"     > "$SCRIPT"
+    echo "g"    >> "$SCRIPT"
+    echo "exit" >> "$SCRIPT"
+    $JLINK "$SCRIPT"
+    rm "$SCRIPT"
 }
 
 pin-reset ()
@@ -48,11 +48,11 @@ pin-reset ()
     echo ""
     echo -e "${GREEN}resetting with pin...${RESET}"
     echo ""
-    echo "w4 40000544 1" > $SCRIPT
-    echo "r"            >> $SCRIPT
-    echo "exit"         >> $SCRIPT
-    $JLINK $SCRIPT
-    rm $SCRIPT
+    echo "w4 40000544 1" > "$SCRIPT"
+    echo "r"            >> "$SCRIPT"
+    echo "exit"         >> "$SCRIPT"
+    $JLINK "$SCRIPT"
+    rm "$SCRIPT"
 }
 
 erase-all ()
@@ -60,13 +60,13 @@ erase-all ()
     echo ""
     echo -e "${GREEN}perfoming full erase...${RESET}"
     echo ""
-    echo "w4 4001e504 2"  > $SCRIPT
-    echo "w4 4001e50c 1" >> $SCRIPT
-    echo "sleep 100"     >> $SCRIPT
-    echo "r"             >> $SCRIPT
-    echo "exit"          >> $SCRIPT
-    $JLINK $SCRIPT
-    rm $SCRIPT
+    echo "w4 4001e504 2"  > "$SCRIPT"
+    echo "w4 4001e50c 1" >> "$SCRIPT"
+    echo "sleep 100"     >> "$SCRIPT"
+    echo "r"             >> "$SCRIPT"
+    echo "exit"          >> "$SCRIPT"
+    $JLINK "$SCRIPT"
+    rm "$SCRIPT"
 }
 
 flash ()
@@ -74,13 +74,13 @@ flash ()
     echo ""
     echo -e "${GREEN}flashing ${1}...${RESET}"
     echo ""
-    echo "r"            > $SCRIPT
-    echo "loadfile $1" >> $SCRIPT
-    echo "r"           >> $SCRIPT
-    echo "g"           >> $SCRIPT
-    echo "exit"        >> $SCRIPT
-    $JLINK $SCRIPT
-    rm $SCRIPT
+    echo "r"            > "$SCRIPT"
+    echo "loadfile $1" >> "$SCRIPT"
+    echo "r"           >> "$SCRIPT"
+    echo "g"           >> "$SCRIPT"
+    echo "exit"        >> "$SCRIPT"
+    $JLINK "$SCRIPT"
+    rm "$SCRIPT"
 }
 
 flash-softdevice ()
@@ -88,19 +88,21 @@ flash-softdevice ()
     echo ""
     echo -e "${GREEN}flashing softdevice ${HEX}...${RESET}"
     echo ""
+
     # Write to NVMC to enable erase, do erase all, wait for completion. reset
-    echo "w4 4001e504 2"  > $SCRIPT
-    echo "w4 4001e50c 1" >> $SCRIPT
-    echo "sleep 100"     >> $SCRIPT
-    echo "r"             >> $SCRIPT
+    echo "w4 4001e504 2"  > "$SCRIPT"
+    echo "w4 4001e50c 1" >> "$SCRIPT"
+    echo "sleep 100"     >> "$SCRIPT"
+    echo "r"             >> "$SCRIPT"
+
     # Write to NVMC to enable write. Write mainpart, write UICR. Assumes device is erased.
-    echo "w4 4001e504 1" >> $SCRIPT
-    echo "loadfile $1" >> $SCRIPT
-    echo "r"             >> $SCRIPT
-    echo "g"             >> $SCRIPT
-    echo "exit"          >> $SCRIPT
-    $JLINK $SCRIPT
-    rm $SCRIPT
+    echo "w4 4001e504 1" >> "$SCRIPT"
+    echo "loadfile $1"   >> "$SCRIPT"
+    echo "r"             >> "$SCRIPT"
+    echo "g"             >> "$SCRIPT"
+    echo "exit"          >> "$SCRIPT"
+    $JLINK "$SCRIPT"
+    rm "$SCRIPT"
 }
 
 rtt ()
@@ -130,7 +132,7 @@ if [ $# -eq 0 ]; then
     exit 1
 else
     while [ "$1" ]; do
-        case $1 in 
+        case "$1" in 
             -r | --reset) reset
                           ;;
             --pinreset)   pin-reset
@@ -138,10 +140,10 @@ else
             --erase-all)  erase-all
                           ;;
             --program)    shift
-                          flash $1
+                          flash "$1"
                           ;;
             --programs)   shift
-                          flash-softdevice $1
+                          flash-softdevice "$1"
                           ;;
             --rtt)        rtt
                           ;;
