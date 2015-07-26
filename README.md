@@ -1,5 +1,5 @@
 nrfprog
-==========
+====
 
 This is a loose shell port of the nrfjprog.exe program distributed by Nordic.
 It relies on [JLinkExe](https://www.segger.com/jlink-software.html) to
@@ -22,8 +22,8 @@ where action is one of:
  * `--program`
  * `--programs`
 
- Credits
- =======
+Credits
+====
 
- Thanks to @hlnd for the initial scripts.
- Thanks to @ssfrr for the repo this was forked from.
+Thanks to @hlnd for the initial scripts.
+Thanks to @ssfrr for the repo this was forked from.
