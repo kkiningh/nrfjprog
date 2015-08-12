@@ -18,7 +18,7 @@ nrfjprog <action> [hexfile]
 
 where action is one of
   --reset
-  --pin-reset
+  --pinreset
   --erase-all
   --program
   --programs
@@ -43,13 +43,19 @@ reset ()
     rm "$SCRIPT"
 }
 
-pin-reset ()
+pinreset ()
 {
+    # Magic incantations from
+    # https://devzone.nordicsemi.com/question/18449/pin-reset-nrfjprog-p-equivalent-using-jlinkexe/
     echo ""
     echo -e "${GREEN}resetting with pin...${RESET}"
     echo ""
     echo "w4 40000544 1" > "$SCRIPT"
-    echo "r"            >> "$SCRIPT"
+    echo "si 0"         >> "$SCRIPT"
+    echo "tck0"         >> "$SCRIPT"
+    echo "t0"           >> "$SCRIPT"
+    echo "sleep 10"     >> "$SCRIPT"
+    echo "t1"           >> "$SCRIPT"
     echo "exit"         >> "$SCRIPT"
     $JLINK "$SCRIPT"
     rm "$SCRIPT"
@@ -121,7 +127,8 @@ rtt ()
     kill $JLINK_PID
 }
 
-ctrl_c () {
+ctrl_c ()
+{
     return
 }
 
@@ -132,10 +139,10 @@ if [ $# -eq 0 ]; then
     exit 1
 else
     while [ "$1" ]; do
-        case "$1" in 
+        case "$1" in
             -r | --reset) reset
                           ;;
-            --pinreset)   pin-reset
+            --pinreset)   pinreset
                           ;;
             --erase-all)  erase-all
                           ;;
