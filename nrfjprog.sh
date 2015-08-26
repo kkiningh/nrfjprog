@@ -5,6 +5,8 @@
 #### CONSTANTS
 
 JLINK="JLinkExe -device nrf51822 -if swd -speed 1000"
+JLINKGDBSERVER="JLinkGDBServer -device nrf51822 -if swd -speed 1000 -port 2331"
+GDB="arm-none-eabi-gdb"
 
 read -d '' USAGE <<- EOF
 nrfprog.sh
@@ -20,8 +22,10 @@ where action is one of
   --reset
   --pinreset
   --erase-all
+  --gdb
   --program
   --programs
+  --recover
   --rtt
 EOF
 
@@ -111,19 +115,78 @@ flash-softdevice ()
     rm "$SCRIPT"
 }
 
+gdb ()
+{
+    # trap the SIGINT signal so we can clean up if the user CTRL-C's out of the
+    # GDB server
+    trap ctrl_c INT
+    echo -e "${GREEN}Starting GDB Server...${RESET}"
+    $JLINKGDBSERVER &
+    JLINK_PID=$!
+    sleep 3
+    echo -e "\n${GREEN}Connecting to GDB Server...${RESET}"
+    $GDB "$1" -x <(printf "target remote localhost:2331\nbreak main\n")
+    echo -e "\n${GREEN}Killing GDB Server ($JLINK_PID)...${RESET}"
+    kill $JLINK_PID
+}
+
+recover ()
+{
+    echo ""
+    echo -e "${GREEN}recovering device. This can take about 3 minutes.${RESET}"
+    echo ""
+    echo "si 0"           > "$SCRIPT"
+    echo "t0"            >> "$SCRIPT"
+    echo "sleep 1"       >> "$SCRIPT"
+    echo "tck1"          >> "$SCRIPT"
+    echo "sleep 1"       >> "$SCRIPT"
+    echo "t1"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t0"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t1"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t0"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t1"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t0"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t1"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t0"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t1"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t0"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t1"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t0"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "t1"            >> "$SCRIPT"
+    echo "sleep 2"       >> "$SCRIPT"
+    echo "tck0"          >> "$SCRIPT"
+    echo "sleep 100"     >> "$SCRIPT"
+    echo "si 1"          >> "$SCRIPT"
+    echo "r"             >> "$SCRIPT"
+    echo "exit"          >> "$SCRIPT"
+    $JLINK "$SCRIPT"
+    rm "$SCRIPT"
+}
+
 rtt ()
 {
     # trap the SIGINT signal so we can clean up if the user CTRL-C's out of the
     # RTT client
     trap ctrl_c INT
     echo -e "${GREEN}Starting RTT Server...${RESET}"
-    JLinkExe -device nrf51822 -if swd -speed 1000 &
+    $JLINK &
     JLINK_PID=$!
     sleep 1
     echo -e "\n${GREEN}Connecting to RTT Server...${RESET}"
-    #telnet localhost 19021
     JLinkRTTClient
-    echo -e "\n${GREEN}Killing RTT server ($JLINK_PID)...${RESET}"
+    echo -e "\n${GREEN}Killing RTT Server ($JLINK_PID)...${RESET}"
     kill $JLINK_PID
 }
 
@@ -146,11 +209,16 @@ else
                           ;;
             --erase-all)  erase-all
                           ;;
+            --gdb)        shift
+                          gdb "$1"
+                          ;;
             --program)    shift
                           flash "$1"
                           ;;
             --programs)   shift
                           flash-softdevice "$1"
+                          ;;
+            --recover)    recover
                           ;;
             --rtt)        rtt
                           ;;
