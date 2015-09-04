@@ -16,11 +16,15 @@ nrfjprog <action> [hexfile]
 ```
 
 where action is one of:
- * `--reset`
- * `--pin-reset`
  * `--erase-all`
+ * `--execute`
+ * `--gdb`
+ * `--pinreset`
  * `--program`
  * `--programs`
+ * `--recover`
+ * `--reset`
+ * `--rtt`
 
 Credits
 ====

@@ -7,6 +7,7 @@
 JLINK="JLinkExe -device nrf51822 -if swd -speed 1000"
 JLINKGDBSERVER="JLinkGDBServer -device nrf51822 -if swd -speed 1000 -port 2331"
 GDB="arm-none-eabi-gdb"
+GDB_INIT="/tmp/$(basename $0).$$.gdbinit"
 
 read -d '' USAGE <<- EOF
 nrfprog.sh
@@ -22,7 +23,7 @@ where action is one of
   --reset
   --pinreset
   --erase-all
-  --gdb
+  --gdb-server
   --program
   --programs
   --recover
@@ -34,6 +35,13 @@ RESET="\033[0m"
 SCRIPT="/tmp/$(basename $0).$$.jlink"
 
 #### FUNCTIONS
+
+execute ()
+{
+    echo "$1" > "$SCRIPT"
+    $JLINK "$SCRIPT"
+    rm "$SCRIPT"
+}
 
 reset ()
 {
@@ -123,9 +131,14 @@ gdb ()
     echo -e "${GREEN}Starting GDB Server...${RESET}"
     $JLINKGDBSERVER &
     JLINK_PID=$!
-    sleep 3
+    sleep 2
     echo -e "\n${GREEN}Connecting to GDB Server...${RESET}"
-    $GDB "$1" -x <(printf "target remote localhost:2331\nbreak main\n")
+#    echo "target remote localhost:2331"               > "${GDB_INIT}"
+#    echo "break main"                                >> "${GDB_INIT}"
+#    echo "monitor speed auto"                        >> "${GDB_INIT}"
+#    echo "set remote memory-write-packet-size 1024"  >> "${GDB_INIT}"
+#    echo "set remote memory-write-packet-size fixed" >> "${GDB_INIT}"
+    $GDB "$1" -readnow -ex 'target extended-remote :2331' "$1"
     echo -e "\n${GREEN}Killing GDB Server ($JLINK_PID)...${RESET}"
     kill $JLINK_PID
 }
@@ -203,27 +216,30 @@ if [ $# -eq 0 ]; then
 else
     while [ "$1" ]; do
         case "$1" in
-            -r | --reset) reset
-                          ;;
-            --pinreset)   pinreset
-                          ;;
-            --erase-all)  erase-all
-                          ;;
-            --gdb)        shift
-                          gdb "$1"
-                          ;;
-            --program)    shift
-                          flash "$1"
-                          ;;
-            --programs)   shift
-                          flash-softdevice "$1"
-                          ;;
-            --recover)    recover
-                          ;;
-            --rtt)        rtt
-                          ;;
-            *)            echo "unexpected option '$1'" >&2
-                          exit 1
+            -r | --reset)   reset
+                            ;;
+            --pinreset)     pinreset
+                            ;;
+            --erase-all)    erase-all
+                            ;;
+            -x | --execute) shift
+                            execute "$1"
+                            ;;
+            --gdb)          shift
+                            gdb "$1"
+                            ;;
+            --program)      shift
+                            flash "$1"
+                            ;;
+            --programs)     shift
+                            flash-softdevice "$1"
+                            ;;
+            --recover)      recover
+                            ;;
+            --rtt)          rtt
+                            ;;
+            *)              echo "unexpected option '$1'" >&2
+                            exit 1
         esac
         shift
     done
